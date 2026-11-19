@@ -104,7 +104,7 @@ void viewHazards(void){
     fp = fopen("hazard.txt", "r");
     if(fp==NULL){
         printf("No hazard reports found.\n");
-        return 1;
+        return;
     }
 
     printf("\n===== ALL HAZARD REPORTS =====\n");
@@ -129,7 +129,7 @@ void searchHazards(void) {
     fp= fopen("hazard.txt", "r");
     if(fp==NULL){
         printf("No hazard reports found.\n");
-        return 1;
+        return;
     }
 
     printf("\n===== SEARCH RESULTS =====\n");
@@ -147,24 +147,225 @@ void searchHazards(void) {
     fclose(fp);
 }
 
-/* Member 3: change a report's status to Cleared */
+// BRAXTENN 
 void updateHazardStatus(void)
 {
     char searchLocation[LOCATION_SIZE];
     char dateCleared[DATE_SIZE];
     char line[LINE_SIZE];
+
+    char location[LOCATION_SIZE];
+    char hazardType[TYPE_SIZE];
+    char description[DESCRIPTION_SIZE];
+    char reportedBy[NAME_SIZE];
+    char dateReported[DATE_SIZE];
+    char status[STATUS_SIZE];
+    char oldDateCleared[DATE_SIZE];
+
     FILE *fp;
     FILE *temp;
+
+    int found = 0;
+    int validDate;
+    int i;
 
     /* TODO: Find the report by location. */
     /* TODO: Write all records to a temporary file, updating the matching record. */
     /* TODO: Set status to Cleared and save the date cleared. */
     /* TODO: Close files and replace the original file with the temporary file. */
+
+    printf("\n===== UPDATE HAZARD STATUS =====\n");
+
+    printf("Enter location of the hazard to update: ");
+    fgets(searchLocation, sizeof(searchLocation), stdin);
+    searchLocation[strcspn(searchLocation, "\n")] = '\0';
+
+    if (strchr(searchLocation, '|') != NULL)
+    {
+        printf("Location cannot contain the | character.\n");
+        return;
+    }
+
+    fp = fopen(HAZARD_FILE, "r");
+
+    if (fp == NULL)
+    {
+        printf("No hazard reports found.\n");
+        return;
+    }
+
+    temp = fopen("temp.txt", "w");
+
+    if (temp == NULL)
+    {
+        printf("Could not create temporary file.\n");
+        fclose(fp);
+        return;
+    }
+
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        if (sscanf(line,
+            "%99[^|]|%49[^|]|%199[^|]|%49[^|]|%19[^|]|%19[^|]|%19[^\n]",
+            location, hazardType, description, reportedBy,
+            dateReported, status, oldDateCleared) != 7)
+        {
+            fprintf(temp, "%s", line);
+            continue;
+        }
+
+        if (strcmp(location, searchLocation) == 0)
+        {
+            found = 1;
+
+            printf("\n===== HAZARD REPORT FOUND =====\n");
+            printf("Location: %s\n", location);
+            printf("Hazard Type: %s\n", hazardType);
+            printf("Description: %s\n", description);
+            printf("Reported By: %s\n", reportedBy);
+            printf("Date Reported: %s\n", dateReported);
+            printf("Current Status: %s\n", status);
+
+            if (strcmp(status, "Cleared") == 0)
+            {
+                printf("\nThis hazard is already Cleared.\n");
+                fprintf(temp, "%s", line);
+            }
+            else
+            {
+                do
+                {
+                    validDate = 1;
+                    printf("\nEnter date cleared (YYYY-MM-DD): ");
+
+                    if (fgets(dateCleared, sizeof(dateCleared), stdin) == NULL)
+                    {
+                        fclose(fp);
+                        fclose(temp);
+                        remove("temp.txt");
+                        return;
+                    }
+
+                    dateCleared[strcspn(dateCleared, "\n")] = '\0';
+
+                    if (strlen(dateCleared) != 10)
+                    {
+                        validDate = 0;
+                    }
+                    else
+                    {
+                        for (i = 0; i < 10; i++)
+                        {
+                            if (i == 4 || i == 7)
+                            {
+                                if (dateCleared[i] != '-')
+                                {
+                                    validDate = 0;
+                                }
+                            }
+                            else if (dateCleared[i] < '0' || dateCleared[i] > '9')
+                            {
+                                validDate = 0;
+                            }
+                        }
+                    }
+
+                    if (validDate == 0)
+                    {
+                        printf("Invalid date format. Use YYYY-MM-DD.\n");
+                    }
+                } while (validDate == 0);
+
+                strcpy(status, "Cleared");
+
+                fprintf(temp, "%s|%s|%s|%s|%s|%s|%s\n",
+                        location, hazardType, description,
+                        reportedBy, dateReported, status, dateCleared);
+            }
+        }
+        else
+        {
+            fprintf(temp, "%s", line);
+        }
+    }
+
+    fclose(fp);
+    fclose(temp);
+
+    if (found == 0)
+    {
+        printf("\nNo matching hazard report found.\n");
+        remove("temp.txt");
+        return;
+    }
+
+    if (remove(HAZARD_FILE) != 0)
+    {
+        printf("Could not remove the original file.\n");
+        return;
+    }
+
+    if (rename("temp.txt", HAZARD_FILE) != 0)
+    {
+        printf("Could not replace the original file.\n");
+        return;
+    }
+
+    printf("\nHazard records updated successfully!\n");
 }
 
 
 int main(void)
 {
-    /* Add the menu here when the team combines the functions. */
+    // Add the menu here when the team combines the functions
+    int choice;
+    char choiceText[10];
+
+    do
+    {
+        printf("\n====================================\n");
+        printf("           ROAD HAZARD LOG\n");
+        printf("====================================\n");
+
+        printf("[1] Add Hazard Report\n");
+        printf("[2] View All Hazard Reports\n");
+        printf("[3] Search Hazard Report\n");
+        printf("[4] Update Hazard Status\n");
+        printf("[5] Exit\n");
+
+        printf("------------------------------------\n");
+        printf("Enter your choice: ");
+
+        fgets(choiceText, sizeof(choiceText), stdin);
+        choice = choiceText[0] - '0';
+
+        switch (choice)
+        {
+            case 1:
+                addHazard();
+                break;
+
+            case 2:
+                viewHazards();
+                break;
+
+            case 3:
+                searchHazards();
+                break;
+
+            case 4:
+                updateHazardStatus();
+                break;
+
+            case 5:
+                printf("\nThank you for using Road Hazard Log!\n");
+                break;
+
+            default:
+                printf("\nInvalid choice. Please try again.\n");
+        }
+
+    } while (choice != 5);
+
     return 0;
 }
