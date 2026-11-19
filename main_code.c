@@ -12,7 +12,7 @@
 #define LINE_SIZE 512
 
 //Yanna
-void addHazard(void)
+void addHazard()
 {
     char location[LOCATION_SIZE];
     char hazardType[TYPE_SIZE];
@@ -105,8 +105,8 @@ void addHazard(void)
 }
 
 
-
-void viewHazards(void){
+//Clark
+void viewHazards(){
     char line[LINE_SIZE];
     FILE *fp;
 
@@ -124,6 +124,7 @@ void viewHazards(void){
     fclose(fp);
 }
 
+//Clark
 void searchHazards()
 {
     char searchText[LOCATION_SIZE];
