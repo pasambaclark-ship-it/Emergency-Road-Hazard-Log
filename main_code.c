@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include<windows.h>
 
 
 #define HAZARD_FILE "hazards.txt"
@@ -12,7 +13,7 @@
 #define LINE_SIZE 512
 
 //Yanna
-void addHazard()
+void addHazard(void)
 {
     char location[LOCATION_SIZE];
     char hazardType[TYPE_SIZE];
@@ -28,6 +29,7 @@ void addHazard()
 
     do
     {
+        Sleep(1000);
         printf("\n===== REPORT ROAD HAZARD =====\n");
 
     printf("Enter location: ");
@@ -50,6 +52,8 @@ void addHazard()
     fgets(dateReported, sizeof(dateReported), stdin);
     dateReported[strcspn(dateReported, "\n")] = '\0';
 
+    Sleep(1000);
+
     printf("\nChoose the report status:\n");
     printf("1. Blocked (active hazard or closure)\n");
     printf("2. Cleared (already reopened)\n");
@@ -64,12 +68,15 @@ void addHazard()
             strcpy(dateCleared, "N/A");
             break;
         case 2:
+            Sleep(1000);
             strcpy(status, "Cleared");
+            Sleep(1000);
             printf("Enter date cleared (YYYY-MM-DD): ");
             fgets(dateCleared, sizeof(dateCleared), stdin);
             dateCleared[strcspn(dateCleared, "\n")] = '\0';
             break;
         default:
+            Sleep(2000);
             printf("Invalid choice. The report will be saved as Blocked.\n");
             strcpy(status, "Blocked");
             strcpy(dateCleared, "N/A");
@@ -80,6 +87,7 @@ void addHazard()
         strchr(description, '|') != NULL || strchr(reportedBy, '|') != NULL ||
         strchr(dateReported, '|') != NULL || strchr(dateCleared, '|') != NULL)
     {
+        Sleep(1000);
         printf("Do not use the | character in any answer. Report not saved.\n");
         return;
     }
@@ -87,6 +95,7 @@ void addHazard()
     fp = fopen(HAZARD_FILE, "a");
     if (fp == NULL)
     {
+        Sleep(2000);
         printf("Could not open hazards.txt. The report was not saved.\n");
         return;
     }
@@ -96,8 +105,9 @@ void addHazard()
             dateReported, status, dateCleared);
 
     fclose(fp);
+    Sleep(2000);
     printf("Hazard report saved.\n");
-
+    Sleep(1000);
     printf("\nWould you like to add another report? (Y/N): ");
     fgets(again, sizeof(again), stdin);
 
@@ -105,17 +115,18 @@ void addHazard()
 }
 
 
-//Clark
-void viewHazards(){
+
+void viewHazards(void){
     char line[LINE_SIZE];
     FILE *fp;
 
     fp = fopen(HAZARD_FILE, "r");
     if(fp==NULL){
+        Sleep(2000);
         printf("No hazard reports found.\n");
         return;
     }
-
+    Sleep(1000);
     printf("\n===== ALL HAZARD REPORTS =====\n");
 
     while(fgets(line, sizeof(line), fp) !=NULL){
@@ -124,7 +135,6 @@ void viewHazards(){
     fclose(fp);
 }
 
-//Clark
 void searchHazards()
 {
     char searchText[LOCATION_SIZE];
@@ -132,12 +142,14 @@ void searchHazards()
     FILE *fp;
     int found = 0;
 
+    Sleep(1000);
     printf("Enter a Location or Hazard to search: ");
     fgets(searchText, sizeof(searchText), stdin);
     searchText[strcspn(searchText, "\n")] = '\0';
 
     if (searchText[0] == '\0')
     {
+        Sleep(1000);
         printf("Please enter something to search for.\n");
         return;
     }
@@ -145,10 +157,11 @@ void searchHazards()
     fp = fopen(HAZARD_FILE, "r");
     if (fp == NULL)
     {
+        Sleep(2000);
         printf("No hazard reports found.\n");
         return;
     }
-
+    Sleep(1000);
     printf("\n===== SEARCH RESULTS =====\n");
 
     while (fgets(line, sizeof(line), fp) != NULL)
@@ -162,6 +175,7 @@ void searchHazards()
 
     if (found == 0)
     {
+        Sleep(2000);
         printf("No matching hazard report found.\n");
     }
 
@@ -191,6 +205,7 @@ void updateHazardStatus()
     int validDate;
     int i;
 
+    Sleep(1000);
     printf("\n===== UPDATE HAZARD STATUS =====\n");
 
     printf("Enter location of the hazard to update: ");
@@ -199,6 +214,7 @@ void updateHazardStatus()
 
     if (strchr(searchLocation, '|') != NULL)
     {
+        Sleep(1000);
         printf("Location cannot contain the | character.\n");
         return;
     }
@@ -207,6 +223,7 @@ void updateHazardStatus()
 
     if (fp == NULL)
     {
+        Sleep(2000);
         printf("No hazard reports found.\n");
         return;
     }
@@ -216,6 +233,7 @@ void updateHazardStatus()
     {
         fclose(check);
         fclose(fp);
+        Sleep(2000);
         printf("Temporary file already exists. No files were changed.\n");
         return;
     }
@@ -224,6 +242,7 @@ void updateHazardStatus()
 
     if (temp == NULL)
     {
+        Sleep(2000);
         printf("Could not create temporary file.\n");
         fclose(fp);
         return;
@@ -243,7 +262,7 @@ void updateHazardStatus()
         if (strcmp(location, searchLocation) == 0)
         {
             found = 1;
-
+            Sleep(1000);
             printf("\n===== HAZARD REPORT FOUND =====\n");
             printf("Location: %s\n", location);
             printf("Hazard Type: %s\n", hazardType);
@@ -298,6 +317,7 @@ void updateHazardStatus()
 
                     if (validDate == 0)
                     {
+                        Sleep(1000);
                         printf("Invalid date format. Use YYYY-MM-DD.\n");
                     }
                 } while (validDate == 0);
@@ -320,6 +340,7 @@ void updateHazardStatus()
 
     if (found == 0)
     {
+        Sleep(2000);
         printf("\nNo matching hazard report found.\n");
         remove("hazards_update_temp.tmp");
         return;
@@ -350,6 +371,7 @@ void updateHazardStatus()
     }
 
     remove("hazards_update_backup.bak");
+    Sleep(2000);
     printf("\nHazard records updated successfully!\n");
 }
 
@@ -361,6 +383,7 @@ int main()
 
     do
     {
+        Sleep(2000);
         printf("\n====================================\n");
         printf("           ROAD HAZARD LOG\n");
         printf("====================================\n");
@@ -396,10 +419,12 @@ int main()
                 break;
 
             case 5:
+                Sleep(2000);
                 printf("\nThank you for using Road Hazard Log!\n");
                 break;
 
             default:
+                Sleep(2000);
                 printf("\nInvalid choice. Please try again.\n");
         }
 
